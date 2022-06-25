@@ -5,19 +5,30 @@ import (
 	"net/http"
 )
 
+const appPort = ":8081";
+
+// Home is the home page handler
+func Home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "This is the home page")
+}
+
+// About is the home page handler
+func About(w http.ResponseWriter, r *http.Request) {
+	sum := addValues(2, 2)
+	_, _ = fmt.Fprintf(w, "This is the home page and 2 + 2 is %d", sum)
+}
+
+// addValues adds two integers and return the sum
+func addValues(x, y int) int {
+	return x + y
+}
+
+// main in the main application function
 func main()  {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-		n, err := fmt.Fprintf(w, "Hello world!")
+	http.HandleFunc("/", Home)
+	http.HandleFunc("/about", About)
 
-		if err != nil {
-			 fmt.Println(err)
-		}
+	fmt.Printf("Starting application on port %s", appPort);
 
-		fmt.Println(fmt.Sprintf("NUmber of bytes written: %d", n))
-	})
-
-	err := http.ListenAndServe(":8081", nil)
-	if err != nil {
-		fmt.Println(err)
-	}
+	http.ListenAndServe(appPort, nil)
 }
