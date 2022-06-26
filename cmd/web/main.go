@@ -14,7 +14,7 @@ func main()  {
 	http.HandleFunc("/", handlers.Home)
 	http.HandleFunc("/about", handlers.About)
 
-	fmt.Printf("Starting application on port %s\n", appPort);
+	fmt.Printf("Starting application on port %s\n\n\n", appPort);
 
 	http.ListenAndServe(appPort, nil)
 }
