@@ -7,37 +7,41 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/devsendjin/go-practice/pkg/config"
 )
 
 var templateFunctions = template.FuncMap{}
 
+var app *config.AppConfig
+
+func NewTemplates(a *config.AppConfig) {
+	app = a
+}
+
 func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	templateCache, err := CreateTemplateCache()
-	if err != nil {
-		fmt.Println("Error parsing template:", err)
-		log.Fatal(err)
+	var templateCache map[string]*template.Template
+
+	if app.UseCache {
+		templateCache = app.TemplateCache
+	} else {
+		templateCache, _ = CreateTemplateCache()
 	}
 
 	currentTemplate, ok := templateCache[tmpl]
 	fmt.Println("RenderTemplate - currentTemplate:", currentTemplate)
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("Could not get template from template cache")
 	}
 
 	buffer := new(bytes.Buffer)
 
 	currentTemplate.Execute(buffer, nil)
 
-	_, err = buffer.WriteTo(w)
+	_, err := buffer.WriteTo(w)
 	if err != nil {
 		fmt.Println("RenderTemplate - Error writing template to browser", err)
 	}
-
-	// parsedTemplate, _ := template.ParseFiles("./templates/" + tmpl)
-	// err = parsedTemplate.Execute(w, nil)
-	// if err != nil {
-	// 	fmt.Println("Error parsing template:", err)
-	// }
 
 	fmt.Printf("\n\n")
 	fmt.Printf("----------------------------")

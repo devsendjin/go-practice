@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/devsendjin/go-learn/pkg/config"
-	"github.com/devsendjin/go-learn/pkg/handlers"
-	"github.com/devsendjin/go-learn/pkg/render"
+	"github.com/devsendjin/go-practice/pkg/config"
+	"github.com/devsendjin/go-practice/pkg/handlers"
+	"github.com/devsendjin/go-practice/pkg/render"
 )
 
 const appPort = ":8081"
@@ -22,11 +22,17 @@ func main() {
 	}
 
 	app.TemplateCache = templateCache
+	app.UseCache = false
 
-	http.HandleFunc("/", handlers.Home)
-	http.HandleFunc("/about", handlers.About)
+	repo := handlers.NewRepo(&app)
+	handlers.NewHandlers(repo)
 
-	fmt.Printf("Starting application on port %s\n\n\n", appPort)
+	render.NewTemplates(&app)
+
+	http.HandleFunc("/", handlers.Repo.Home)
+	http.HandleFunc("/about", handlers.Repo.About)
+
+	fmt.Printf("\nStarting application on port %s\n\n\n", appPort)
 
 	http.ListenAndServe(appPort, nil)
 }
