@@ -3,10 +3,10 @@ package render
 import (
 	"bytes"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
-	"text/template"
 )
 
 var templateFunctions = template.FuncMap{}
@@ -45,11 +45,11 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
-	myCache := map[string]*template.Template{}
+	templateCache := map[string]*template.Template{}
 
 	pages, err := filepath.Glob("./templates/*.page.tmpl")
 	if err != nil {
-		return myCache, err
+		return templateCache, err
 	}
 
 	for _, page := range pages {
@@ -61,7 +61,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 
 		templateSet, err := template.New(name).Funcs(templateFunctions).ParseFiles(page)
 		if err != nil {
-			return myCache, err
+			return templateCache, err
 		}
 
 		fmt.Println("CreateTemplateCache - templateSet:", templateSet)
@@ -70,7 +70,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 
 		matches, err := filepath.Glob(layoutGlob)
 		if err != nil {
-			return myCache, err
+			return templateCache, err
 		}
 
 		fmt.Println("CreateTemplateCache - matches:", matches)
@@ -78,16 +78,16 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		if len(matches) > 0 {
 			templateSet, err = templateSet.ParseGlob(layoutGlob)
 			if err != nil {
-				return myCache, err
+				return templateCache, err
 			}
 		}
 
-		myCache[name] = templateSet
+		templateCache[name] = templateSet
 	}
 
-	fmt.Println("CreateTemplateCache - myCache:", myCache)
+	fmt.Println("CreateTemplateCache - myCache:", templateCache)
 
 	// fmt.Println("pages", pages)
 
-	return myCache, nil
+	return templateCache, nil
 }
