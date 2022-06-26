@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/devsendjin/go-practice/pkg/config"
+	"github.com/devsendjin/go-practice/pkg/models"
+	// "golang.org/x/exp/maps"
 )
 
 var templateFunctions = template.FuncMap{}
@@ -19,7 +21,11 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string, templateData *models.TemplateData) {
 	var templateCache map[string]*template.Template
 
 	if app.UseCache {
@@ -29,23 +35,25 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 	}
 
 	currentTemplate, ok := templateCache[tmpl]
-	fmt.Println("RenderTemplate - currentTemplate:", currentTemplate)
+	// fmt.Println("RenderTemplate - currentTemplate:", currentTemplate)
 	if !ok {
 		log.Fatal("Could not get template from template cache")
 	}
 
 	buffer := new(bytes.Buffer)
 
-	currentTemplate.Execute(buffer, nil)
+	templateData = AddDefaultData(templateData)
+
+	currentTemplate.Execute(buffer, templateData)
 
 	_, err := buffer.WriteTo(w)
 	if err != nil {
 		fmt.Println("RenderTemplate - Error writing template to browser", err)
 	}
 
-	fmt.Printf("\n\n")
-	fmt.Printf("----------------------------")
-	fmt.Printf("\n\n")
+	// fmt.Printf("\n\n")
+	// fmt.Printf("----------------------------")
+	// fmt.Printf("\n\n")
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {
@@ -57,18 +65,18 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 	}
 
 	for _, page := range pages {
-		fmt.Println("CreateTemplateCache - page:", page)
+		// fmt.Println("CreateTemplateCache - page:", page)
 
 		name := filepath.Base(page)
 
-		fmt.Println("CreateTemplateCache - name:", name)
+		// fmt.Println("CreateTemplateCache - name:", name)
 
 		templateSet, err := template.New(name).Funcs(templateFunctions).ParseFiles(page)
 		if err != nil {
 			return templateCache, err
 		}
 
-		fmt.Println("CreateTemplateCache - templateSet:", templateSet)
+		// fmt.Println("CreateTemplateCache - templateSet:", templateSet)
 
 		layoutGlob := "./templates/*.layout.tmpl"
 
@@ -77,7 +85,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 			return templateCache, err
 		}
 
-		fmt.Println("CreateTemplateCache - matches:", matches)
+		// fmt.Println("CreateTemplateCache - matches:", matches)
 
 		if len(matches) > 0 {
 			templateSet, err = templateSet.ParseGlob(layoutGlob)
@@ -89,7 +97,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 		templateCache[name] = templateSet
 	}
 
-	fmt.Println("CreateTemplateCache - myCache:", templateCache)
+	// fmt.Println("CreateTemplateCache - myCache:", templateCache)
 
 	// fmt.Println("pages", pages)
 
