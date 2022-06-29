@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/devsendjin/go-practice/pkg/config"
 	"github.com/devsendjin/go-practice/pkg/handlers"
 	"github.com/devsendjin/go-practice/pkg/render"
@@ -12,9 +14,21 @@ import (
 
 const appPort = ":8081"
 
+var app config.AppConfig
+var session *scs.SessionManager
+
 // main in the main application function
 func main() {
-	var app config.AppConfig
+	app.IsDevelopment = true
+	app.IsProduction = false
+
+	session = scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Cookie.Persist = true
+	session.Cookie.SameSite = http.SameSiteLaxMode
+	session.Cookie.Secure = app.IsProduction
+
+	app.Session = session
 
 	templateCache, err := render.CreateTemplateCache()
 	if err != nil {
@@ -22,7 +36,7 @@ func main() {
 	}
 
 	app.TemplateCache = templateCache
-	app.UseCache = false
+	app.UseCache = app.IsProduction
 
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
